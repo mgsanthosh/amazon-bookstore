@@ -1,5 +1,6 @@
 import 'dart:html';
 
+import 'package:amazon_bookstore/Widgets/ProductCart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -7,7 +8,7 @@ import 'dart:convert';
 
 import 'CartScreen.dart';
 import 'LoginScreen.dart';
-import 'Providers/Cart.dart';
+import 'Providers/CartProvider.dart';
 import 'Utils/Product.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -20,7 +21,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<List<Product>> fetchProductsFromAPI() async {
     if (listOfProducts.length == 0) {
-      final cartProvider = Provider.of<Cart>(context, listen: false);
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
       final response = await http.get(
           Uri.parse(cartProvider.getApiUrl() + 'getAllProducts'),
           headers: {
@@ -45,10 +46,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return listOfProducts;
   }
 
+  addToCart(Product product) {
+    final cart = Provider.of<CartProvider>(context,
+        listen: false);
+    cart.addItem(product);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Product List 1'), actions: [
+      appBar: AppBar(title: Text('Product List'), actions: [
         RaisedButton(
             onPressed: () => {
                   window.localStorage.remove("userData"),
@@ -81,119 +88,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 padding: EdgeInsets.zero,
                 itemBuilder: (context, index) {
                   final product = products[index];
-                  // return Card(
-                  //   elevation: 4,
-                  //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  //   child: ListTile(
-                  //     contentPadding: EdgeInsets.all(16),
-                  //     title: Text(
-                  //       product.name,
-                  //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  //     ),
-                  //     subtitle: Text(
-                  //       '\$${product.price.toStringAsFixed(2)}',
-                  //       style: TextStyle(fontSize: 14, color: Colors.grey),
-                  //     ),
-                  //     leading: Hero(
-                  //       tag: 'productImage_${product.id}',
-                  //       child: Container(
-                  //         width: 60,
-                  //         height: 60,
-                  //         decoration: BoxDecoration(
-                  //           borderRadius: BorderRadius.circular(10),
-                  //           image: DecorationImage(
-                  //             image: NetworkImage(product.productImage),
-                  //             fit: BoxFit.cover,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     ),
-                  //     trailing: IconButton(
-                  //       icon: Icon(Icons.add_shopping_cart),
-                  //       onPressed: () {
-                  //         final cart = Provider.of<Cart>(context, listen: false);
-                  //         cart.addItem(product);
-                  //       },
-                  //     ),
-                  //   ),
-                  // );
-                  return SizedBox(
-                    width: 400,
-                    height: 300, // Set a specific height for the card
-                    child: Card(
-                      elevation: 4,
-                      child: Container(
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 250,
-                              height: 200,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                image: DecorationImage(
-                                  image: NetworkImage(product.productImage),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Container(
-                              child: Text(
-                                product.name,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Container(
-                              child: Text(
-                                '\Rs: ${product.price.toStringAsFixed(2)}',
-                                style:
-                                    TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                            ),
-                            Center(
-                              child: Container(
-                                width: 200,
-                                padding: EdgeInsets.only(top: 20),
-                                child: RaisedButton(
-                                  onPressed: () {
-                                    final cart = Provider.of<Cart>(context,
-                                        listen: false);
-                                    cart.addItem(product);
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.all(10),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          child: Icon(Icons.add_shopping_cart),
-                                        ),
-                                        SizedBox(
-                                          width: 20,
-                                        ),
-                                        Container(
-                                          child: Text("Add to Cart"),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
+                  return ProductCard(product, addToCart);
                 },
               ),
             );

@@ -6,13 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
-import 'Cart.dart';
+import 'CartProvider.dart';
 
 
 class LoginProvider with ChangeNotifier {
+  int? userId = null;
 
   Future<int> authenticate(String userName, String password, BuildContext context) async {
-    final cartProvider = Provider.of<Cart>(context, listen: false);
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
     print(userName);
     print(password);
     if(userName != "" && password != "") {
@@ -22,6 +23,7 @@ class LoginProvider with ChangeNotifier {
       });
       if (response.statusCode == 200) {
         var json = jsonDecode(response.body);
+        userId = json;
         if(json != -1) {
           window.localStorage["userData"] = json.toString();
           return json;
@@ -35,7 +37,7 @@ class LoginProvider with ChangeNotifier {
   }
 
   Future<bool> signUp(String userName, String password, BuildContext context) async {
-    final cartProvider = Provider.of<Cart>(context, listen: false);
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
     print(userName);
     print(password);
     var httpData = {
