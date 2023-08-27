@@ -44,9 +44,9 @@ class CartCard extends StatelessWidget {
                 ),
               ),
               Container(
-                child: Text(cart.productName, style: TextStyle(fontSize: 20),),
+                child: Text(cart.productName, style: TextStyle(fontSize: 12),),
               ),
-              Container( child: Text(cart.productPrice.toString(), style: TextStyle(fontSize: 25),))
+              Container( child: Text('RS - ' + cart.productPrice.toString(), style: TextStyle(fontSize: 16),))
             ],
           ),
         )

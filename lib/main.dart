@@ -1,9 +1,9 @@
-import 'dart:html';
 
 import 'package:amazon_bookstore/LoginScreen.dart';
 import 'package:amazon_bookstore/Providers/LoginProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ProductListScreen.dart';
 import 'Providers/CartProvider.dart';
@@ -37,16 +37,25 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var userData = window.localStorage["userData"];
+  int? userId = null;
 
   @override
   void initState() {
     super.initState();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      getInitData();
+    });
     setState(() {
       // userData = window.localStorage.containsValue("userData");;
     });
   }
+
+  Future<void> getInitData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    userId = prefs.getInt('userData');
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -57,11 +66,11 @@ class _MyHomePageState extends State<MyHomePage> {
         // Provide the cart to the app
       ],
       child: MaterialApp(
-              title: userData.toString(),
+              title: 'Amazon Bookstore',
               theme: ThemeData(
                 primarySwatch: Colors.blue,
               ),
-              home: (userData == null ? LoginScreen() : ProductListScreen()),
+              home: (userId == null ? LoginScreen() : ProductListScreen()),
             )
     );
   }

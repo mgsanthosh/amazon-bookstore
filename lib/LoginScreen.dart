@@ -1,4 +1,4 @@
-import 'dart:html';
+
 
 import 'package:amazon_bookstore/ProductListScreen.dart';
 import 'package:amazon_bookstore/Providers/LoginProvider.dart';
@@ -151,4 +151,5 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
+
 }

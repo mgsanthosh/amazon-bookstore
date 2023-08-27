@@ -1,26 +1,24 @@
 import 'dart:convert';
-import 'dart:html';
+
 
 import 'package:flutter/foundation.dart';
 
 import '../Utils/Cart.dart';
 import '../Utils/Product.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CartProvider with ChangeNotifier {
-  Map<Product, int> _items = {};
-
-  Map<Product, int> get items => {..._items};
-
-  int get itemCount => _items.length;
 
   List<Cart> cartItems = [];
 
   Future<List<Cart>> getCartItems() async {
-    var userId = window.localStorage['userData'];
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? userId = prefs.getInt('userData');
+
 
     final response = await http
-        .get(Uri.parse(getApiUrl() + 'getUserCartData/' + userId), headers: {
+        .get(Uri.parse(getApiUrl() + 'getUserCartData/' + userId.toString()), headers: {
       'Content-Type': 'application/json; charset=UTF-8',
     });
     if (response.statusCode == 200) {
@@ -41,9 +39,10 @@ class CartProvider with ChangeNotifier {
   }
 
   Future<void> addItem(Product product) async {
-    var userId = window.localStorage['userData'];
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? userId = prefs.getInt('userData');
     final response = await http
-        .get(Uri.parse(getApiUrl() + 'addToCart/' + product.id.toString() + '/' + userId), headers: {
+        .get(Uri.parse(getApiUrl() + 'addToCart/' + product.id.toString() + '/' + userId.toString()), headers: {
       'Content-Type': 'application/json; charset=UTF-8',
     });
     notifyListeners();

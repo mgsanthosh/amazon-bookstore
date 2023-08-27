@@ -1,5 +1,5 @@
-import 'dart:html';
 
+import 'package:amazon_bookstore/Providers/LoginProvider.dart';
 import 'package:amazon_bookstore/Widgets/ProductCart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -54,11 +54,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var loginProvider = Provider.of<LoginProvider>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(title: Text('Product List'), actions: [
         RaisedButton(
             onPressed: () => {
-                  window.localStorage.remove("userData"),
+                  loginProvider.logOut(),
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (context) => LoginScreen()))
                 },
@@ -78,12 +80,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
           } else if (snapshot.hasData) {
             final products = snapshot.data!;
             return Container(
-              height: 400,
               width: double.infinity,
               padding: EdgeInsets.all(20),
               child: ListView.builder(
                 itemCount: products.length,
-                scrollDirection: Axis.horizontal,
+                scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
                 itemBuilder: (context, index) {

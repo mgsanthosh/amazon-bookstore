@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:html';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'CartProvider.dart';
 
@@ -24,8 +24,9 @@ class LoginProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         var json = jsonDecode(response.body);
         userId = json;
-        if(json != -1) {
-          window.localStorage["userData"] = json.toString();
+        if(userId != -1) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('userData', userId!);
           return json;
         }
       } else {
@@ -58,5 +59,9 @@ class LoginProvider with ChangeNotifier {
       }
     }
     return false;
+  }
+  void logOut() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('userData');
   }
 }

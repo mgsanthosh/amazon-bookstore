@@ -1,4 +1,3 @@
-import 'dart:html';
 
 import 'package:amazon_bookstore/ProductListScreen.dart';
 import 'package:amazon_bookstore/Utils/Cart.dart';
@@ -9,10 +8,7 @@ import 'package:provider/provider.dart';
 
 import 'LoginScreen.dart';
 import 'Providers/CartProvider.dart';
-import 'Utils/Product.dart';
-import 'package:http/http.dart' as http;
-
-import 'Widgets/ProductCart.dart';
+import 'Providers/LoginProvider.dart';
 
 class CartScreen extends StatefulWidget {
   @override
@@ -69,12 +65,13 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
+    final loginProvider = Provider.of<LoginProvider>(context, listen: false);
 
     return Scaffold(
         appBar: AppBar(title: Text('Cart'), actions: [
           RaisedButton(
               onPressed: () => {
-                    window.localStorage.remove("userData"),
+                loginProvider.logOut(),
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => LoginScreen()))
                   },

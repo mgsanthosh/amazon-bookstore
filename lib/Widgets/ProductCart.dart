@@ -10,15 +10,15 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 400,
-      height: 300, // Set a specific height for the card
+      height: 500, // Set a specific height for the card
       child: Card(
         elevation: 4,
         child: Container(
           child: Column(
             children: [
               Container(
-                width: 250,
-                height: 200,
+                width: 400,
+                height: 325,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   image: DecorationImage(
