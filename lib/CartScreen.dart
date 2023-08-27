@@ -1,5 +1,6 @@
 import 'dart:html';
 
+import 'package:amazon_bookstore/ProductListScreen.dart';
 import 'package:amazon_bookstore/Utils/Cart.dart';
 import 'package:amazon_bookstore/Widgets/CartCard.dart';
 import 'package:amazon_bookstore/Widgets/checkoutStatusPopup.dart';
@@ -126,7 +127,21 @@ class _CartScreenState extends State<CartScreen> {
               )
             : Container(
                 child: Center(
-                  child: Text("There are no items in your cart"),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text("There are no items in your cart"),
+                      SizedBox(height: 20,),
+                      RaisedButton(
+                        onPressed: () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ProductListScreen())),
+                        child: Text('GO BACK TO PRODUCTS'),
+                      )
+                    ],
+                  ),
                 ),
               ));
   }
