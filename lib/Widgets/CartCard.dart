@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../Utils/Cart.dart';
+import '../CartScreen.dart';
+
 
 
 class CartCard extends StatelessWidget {

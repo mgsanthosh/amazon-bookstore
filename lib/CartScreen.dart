@@ -1,18 +1,115 @@
+import 'dart:convert';
 import 'dart:html';
 
 import 'package:amazon_bookstore/ProductListScreen.dart';
-import 'package:amazon_bookstore/Utils/Cart.dart';
 import 'package:amazon_bookstore/Widgets/CartCard.dart';
 import 'package:amazon_bookstore/Widgets/checkoutStatusPopup.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'LoginScreen.dart';
-import 'Providers/CartProvider.dart';
 import 'Utils/Product.dart';
 import 'package:http/http.dart' as http;
 
-import 'Widgets/ProductCart.dart';
+final apiUrl = "http://13.233.204.99:8080/";
+final userLocalId = window.localStorage['userData'];
+
+Future<List<Cart>> fetchProductsFromAPI(http.Client client, var userId) async {
+  print("HEY");
+  List<Cart> cartItems = [];
+  var url = apiUrl + 'getUserCartData/' + userId;
+  print("THE URL IS " + url.toString());
+
+  final response = await client.get(Uri.parse(url));
+  print('THE RESSSSSSSPONSEEEEEEE ' + response.toString());
+  if (response.statusCode == 200) {
+    final List responseData = json.decode(response.body);
+    cartItems = responseData.map((cartData) {
+      return Cart.fromJson(cartData);
+    }).toList();
+  } else {
+    throw Exception('Failed to fetch userId');
+  }
+  print('THE RESSSSSSSPONSEEEEEEE CARTT' + cartItems.toString());
+  return cartItems;
+}
+
+Future<void> addItem(Product product) async {
+  // var userId = window.localStorage['userData'];
+  final response = await http.get(
+      Uri.parse(apiUrl + 'addToCart/' + product.id.toString() + '/' + userLocalId!),
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      });
+}
+
+Future<bool> removeFromCart(Cart cart, http.Client client) async {
+  final response = await client.get(
+      Uri.parse(apiUrl + 'removeFromCart/' + cart.id.toString()),
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      });
+  if (response.statusCode == 200) {
+    bool resp = jsonDecode(response.body) as bool;
+    if(resp) {
+      return true;
+    }
+  } else {
+    return false;
+  }
+  return false;
+}
+
+Future<bool> checkoutCart(List<Cart> cartList, http.Client client) async {
+  List<int> cartIds = [];
+  for (var cart in cartList) {
+    cartIds.add(cart.id);
+  }
+  var httpData = {"cartIds": cartIds};
+  final response = await client.post(Uri.parse(apiUrl + 'checkoutCart'),
+      body: jsonEncode(httpData),
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      });
+  if (response.statusCode == 200) {
+    bool resp = jsonDecode(response.body) as bool;
+    if(resp) {
+      return true;
+    }
+  } else {
+    return false;
+  }
+  return false;
+}
+
+getCartSum(List<Cart> listOfProducts) {
+  double cartTotal = 0.0;
+  for (Cart sumCart in listOfProducts) {
+    cartTotal = cartTotal + sumCart.productPrice;
+  }
+  return cartTotal;
+}
+
+class Cart {
+  final int id;
+  final String productName;
+  final double productPrice;
+  final String productImage;
+
+  Cart(
+      {required this.id,
+      required this.productName,
+      required this.productPrice,
+      required this.productImage});
+
+  factory Cart.fromJson(Map<String, dynamic> cartData) {
+    return Cart(
+        id: cartData['id'],
+        productName: cartData['product_name'],
+        productImage: cartData['product_image'],
+        productPrice: cartData['product_price']);
+  }
+}
 
 class CartScreen extends StatefulWidget {
   @override
@@ -26,50 +123,41 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
-    fetchProductsFromAPI();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      getInitData();
+    });
   }
 
-  Future<List<Cart>> fetchProductsFromAPI() async {
-    print("HEY");
-
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    listOfProducts = await cartProvider.getCartItems();
-    getCartSum();
-    print("LIST OF PRODYC " + listOfProducts.toString());
-    setState(() {});
-    return listOfProducts;
-  }
-
-  removeFromCart(Cart cart) async {
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    await cartProvider.removeFromCart(cart);
-    fetchProductsFromAPI();
-  }
-
-  getCartSum() {
-    cartTotal = 0.0;
-    for (Cart sumCart in listOfProducts) {
-      cartTotal = cartTotal + sumCart.productPrice;
-    }
+  Future<void> getInitData() async {
+    listOfProducts = await fetchProductsFromAPI(http.Client(), userLocalId);
+    print("THE LOIST OF PRODUCTS " + listOfProducts.toString());
+    cartTotal = getCartSum(listOfProducts);
     setState(() {});
   }
 
-  checkoutCart() async {
+  handleRemoveFromCart(Cart cart) async {
+    await removeFromCart(cart, http.Client());
+    listOfProducts = await fetchProductsFromAPI(http.Client(), userLocalId);
+    setState(() {});
+  }
+
+  handleCheckoutCart() async {
     print("CLIKED");
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    bool checkoutStatus = await cartProvider.checkoutCart(listOfProducts);
-    await fetchProductsFromAPI();
+    bool checkoutStatus = await checkoutCart(listOfProducts, http.Client());
+    listOfProducts = await fetchProductsFromAPI(http.Client(), userLocalId);
     showDialog(
         context: context,
         builder: (BuildContext ctx) {
           return CheckoutStatusPopup(checkoutStatus);
         });
+    setState(() {
+
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final cart = Provider.of<CartProvider>(context);
-
     return Scaffold(
         appBar: AppBar(title: Text('Cart'), actions: [
           RaisedButton(
@@ -98,7 +186,7 @@ class _CartScreenState extends State<CartScreen> {
                       padding: EdgeInsets.zero,
                       itemBuilder: (context, index) {
                         final cartData = listOfProducts[index];
-                        return CartCard(cartData, removeFromCart);
+                        return CartCard(cartData, handleRemoveFromCart);
                       },
                     ),
                   ),
@@ -116,7 +204,7 @@ class _CartScreenState extends State<CartScreen> {
                           textAlign: TextAlign.end,
                         ),
                         RaisedButton(
-                          onPressed: () => {checkoutCart()},
+                          onPressed: () => {handleCheckoutCart()},
                           child: Text("CHECKOUT"),
                           color: Colors.lightGreenAccent,
                         )
@@ -132,7 +220,9 @@ class _CartScreenState extends State<CartScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text("There are no items in your cart"),
-                      SizedBox(height: 20,),
+                      SizedBox(
+                        height: 20,
+                      ),
                       RaisedButton(
                         onPressed: () => Navigator.pushReplacement(
                             context,

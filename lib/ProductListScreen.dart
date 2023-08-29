@@ -8,8 +8,8 @@ import 'dart:convert';
 
 import 'CartScreen.dart';
 import 'LoginScreen.dart';
-import 'Providers/CartProvider.dart';
 import 'Utils/Product.dart';
+final apiUrl = "http://13.233.204.99:8080/";
 
 class ProductListScreen extends StatefulWidget {
   @override
@@ -21,9 +21,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<List<Product>> fetchProductsFromAPI() async {
     if (listOfProducts.length == 0) {
-      final cartProvider = Provider.of<CartProvider>(context, listen: false);
       final response = await http.get(
-          Uri.parse(cartProvider.getApiUrl() + 'getAllProducts'),
+          Uri.parse(apiUrl + 'getAllProducts'),
           headers: {
             'Content-Type': 'application/json; charset=UTF-8',
           });
@@ -47,9 +46,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   addToCart(Product product) {
-    final cart = Provider.of<CartProvider>(context,
-        listen: false);
-    cart.addItem(product);
+    addItem(product);
   }
 
   @override

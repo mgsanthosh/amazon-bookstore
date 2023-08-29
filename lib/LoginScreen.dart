@@ -1,12 +1,55 @@
+import 'dart:convert';
 import 'dart:html';
 
 import 'package:amazon_bookstore/ProductListScreen.dart';
-import 'package:amazon_bookstore/Providers/LoginProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
-class LoginScreen extends StatefulWidget
-{
+final apiUrl = "http://13.233.204.99:8080/";
+
+Future<int> authenticate(
+    String userName, String password, http.Client client) async {
+  if (userName != "" && password != "") {
+    final response = await client
+        .get(Uri.parse(apiUrl + 'auth/' + userName + '/' + password), headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+    });
+    if (response.statusCode == 200) {
+      var userId = jsonDecode(response.body);
+      if (userId != -1) {
+        window.localStorage["userData"] = userId.toString();
+        return userId;
+      } else {
+        return -1;
+      }
+    } else {
+      return -1;
+    }
+  }
+  return -1;
+}
+
+Future<bool> signUp(String userName, String password, http.Client client) async {
+  var httpData = {
+    "username": userName,
+    "password": password
+  };
+  if(userName != "" && password != "") {
+    final response = await client
+        .post(Uri.parse(apiUrl + 'addUser'), body: jsonEncode(httpData), headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+    });
+    if (response.statusCode == 200) {
+      bool resp = jsonDecode(response.body) as bool;
+      if(resp) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -19,8 +62,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loginProvider = Provider.of<LoginProvider>(context, listen: false);
-
     return Scaffold(
       appBar: AppBar(title: Text('Login Screen')),
       body: Center(
@@ -35,7 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text("BookStore Login", style: TextStyle(fontSize: 30),),
+                  Text(
+                    "BookStore Login",
+                    style: TextStyle(fontSize: 30),
+                  ),
                   TextField(
                     controller: usernameController,
                     decoration: InputDecoration(labelText: 'Username'),
@@ -47,19 +91,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(labelText: 'Password'),
                   ),
                   SizedBox(height: 24),
-                  Text(errorMessage, style: TextStyle(color: Colors.red),),
+                  Text(
+                    errorMessage,
+                    style: TextStyle(color: Colors.red),
+                  ),
                   ElevatedButton(
                     onPressed: () async {
-                      errorMessage ="";
-                      int userId = await loginProvider.authenticate(usernameController.text, passwordController.text, context);
-                      if(userId != -1) {
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProductListScreen()));
+                      errorMessage = "";
+                      int userId = await authenticate(
+                          usernameController.text,
+                          passwordController.text,
+                          http.Client());
+                      if (userId != -1) {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ProductListScreen()));
                       } else {
                         setState(() {
                           errorMessage = "Please Enter Valid Credentials";
                         });
                       }
-
                     },
                     child: Text('Login'),
                   ),
@@ -67,7 +119,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextButton(
                     onPressed: () {
                       // Navigate to the sign-up screen
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => SignUpScreen()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SignUpScreen()));
                     },
                     child: Text('Sign Up'),
                   ),
@@ -94,7 +149,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loginProvider = Provider.of<LoginProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(title: Text('Sign Up')),
       body: Center(
@@ -109,7 +163,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text("BookStore Signup", style: TextStyle(fontSize: 30),),
+                  Text(
+                    "BookStore Signup",
+                    style: TextStyle(fontSize: 30),
+                  ),
                   TextField(
                     controller: usernameController,
                     decoration: InputDecoration(labelText: 'Username'),
@@ -121,14 +178,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     decoration: InputDecoration(labelText: 'Password'),
                   ),
                   SizedBox(height: 16),
-                  Text(errorMessage, style: TextStyle(color: Colors.red),),
+                  Text(
+                    errorMessage,
+                    style: TextStyle(color: Colors.red),
+                  ),
                   ElevatedButton(
                     onPressed: () async {
-                      errorMessage ="";
-                      if(usernameController.text != '' && passwordController.text != '') {
-                        bool isSuccess = await loginProvider.signUp(usernameController.text, passwordController.text, context);
-                        if(isSuccess) {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+                      errorMessage = "";
+                      if (usernameController.text != '' &&
+                          passwordController.text != '') {
+                        bool isSuccess = await signUp(
+                            usernameController.text,
+                            passwordController.text,
+                            http.Client());
+                        if (isSuccess) {
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LoginScreen()));
                         } else {
                           setState(() {
                             errorMessage = "Username is already taken";
@@ -139,7 +206,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           errorMessage = "Enter all the required feilds";
                         });
                       }
-
                     },
                     child: Text('Sign Up'),
                   ),

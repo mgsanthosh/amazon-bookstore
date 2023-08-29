@@ -1,12 +1,9 @@
 import 'dart:html';
 
 import 'package:amazon_bookstore/LoginScreen.dart';
-import 'package:amazon_bookstore/Providers/LoginProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import 'ProductListScreen.dart';
-import 'Providers/CartProvider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -50,19 +47,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => LoginProvider()),
-        // Provide the cart to the app
-      ],
-      child: MaterialApp(
-              title: userData.toString(),
-              theme: ThemeData(
-                primarySwatch: Colors.blue,
-              ),
-              home: (userData == null ? LoginScreen() : ProductListScreen()),
-            )
+    return MaterialApp(
+      title: userData.toString(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: (userData == null ? LoginScreen() : ProductListScreen()),
     );
   }
 }
